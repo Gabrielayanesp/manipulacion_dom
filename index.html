@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestor de Tareas SPA</title>
+  <link rel="stylesheet" href="./src/css/styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+</head>
+<body>
+  <header class="navbar">
+    <h1>Gestion de Tareas</h1>
+    <div id="userMenu" class="user-menu hidden">
+      <span id="currentUserLabel"></span>
+      <button id="logoutBtn">Cerrar sesion</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="loginView" class="card">
+      <h2>Iniciar sesion</h2>
+      <input type="text" id="loginUsername" placeholder="Usuario" required />
+      <input type="password" id="loginPassword" placeholder="Contraseña" required />
+      <button id="loginBtn">Entrar</button>
+      <p>¿No tienes cuenta? <a href="#" id="goToRegister">Registrate aquo</a></p>
+    </div>
+
+    <div id="registerView" class="card hidden">
+      <h2>Registro de usuario</h2>
+      <input type="text" id="registerUsername" placeholder="Usuario" required />
+      <input type="number" id="registerAge" placeholder="Edad" required />
+      <input type="password" id="registerPassword" placeholder="Contraseña" required />
+      <input type="password" id="registerConfirm" placeholder="Confirmar contraseña" required />
+      <button id="registerBtn">Registrarse</button>
+      <p>¿Ya tienes cuenta? <a href="#" id="goToLogin">Inicia sesión</a></p>
+    </div>
+
+    <div id="appView" class="hidden">
+      <div class="card">
+        <h2>Agregar tarea</h2>
+        <input type="text" id="taskInput" placeholder="Escribe una tarea" />
+        <button id="addTaskBtn">Agregar</button>
+      </div>
+      <div id="tasksContainer"></div>
+    </div>
+  </main>
+
+  <footer>
+    <a href="https://github.com/Gabrielayanesp/MPA_manipulacion_dom.git" target="_blank">Mi GitHub</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module" src="./src/js/main.js"></script>
+</body>
+</html>

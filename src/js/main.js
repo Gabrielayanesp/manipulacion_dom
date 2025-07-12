@@ -1,76 +1,192 @@
+const loginView = document.getElementById("loginView");
+const registerView = document.getElementById("registerView");
+const appView = document.getElementById("appView");
+const taskInput = document.getElementById("taskInput");
+const addTaskBtn = document.getElementById("addTaskBtn");
+const tasksContainer = document.getElementById("tasksContainer");
+const logoutBtn = document.getElementById("logoutBtn");
+const userMenu = document.getElementById("userMenu");
+const currentUserLabel = document.getElementById("currentUserLabel");
 
-const nombreInput = document.getElementById("nombre");
-const edadInput = document.getElementById("edad");
-const guardarBtn = document.getElementById("guardarBtn");
-const limpiarBtn = document.getElementById("limpiarBtn");
-const output = document.getElementById("output");
-const contadorDiv = document.getElementById("contador");
-const jsonOutput = document.getElementById("jsonOutput");
+// este es el login
+const loginUsername = document.getElementById("loginUsername");
+const loginPassword = document.getElementById("loginPassword");
+const loginBtn = document.getElementById("loginBtn");
 
-// datos guardados en Local Storage
-guardarBtn.addEventListener("click", () => {
-  const nombre = nombreInput.value.trim();
-  const edad = edadInput.value.trim();
+// para el registro
+const registerUsername = document.getElementById("registerUsername");
+const registerAge = document.getElementById("registerAge");
+const registerPassword = document.getElementById("registerPassword");
+const registerConfirm = document.getElementById("registerConfirm");
+const registerBtn = document.getElementById("registerBtn");
 
-  if (nombre === "" || edad === "") {
-    alert("Por favor completa ambos campos.");
+const goToRegister = document.getElementById("goToRegister");
+const goToLogin = document.getElementById("goToLogin");
+
+let currentUser = null;
+let tareas = [];
+
+function mostrarTareas() {
+  tasksContainer.innerHTML = "";
+  tareas.forEach((tarea, index) => {
+    const div = document.createElement("div");
+    div.className = "task";
+    div.innerHTML = `
+      ${tarea}
+      <button onclick="editarTarea(${index})">Editar</button>
+      <button onclick="eliminarTarea(${index})">Eliminar</button>
+    `;
+    tasksContainer.appendChild(div);
+  });
+}
+
+function guardarTareas() {
+  localStorage.setItem(`tareas_${currentUser}`, JSON.stringify(tareas));
+}
+
+function cargarTareas() {
+  const datos = localStorage.getItem(`tareas_${currentUser}`);
+  tareas = datos ? JSON.parse(datos) : [];
+  mostrarTareas();
+}
+
+addTaskBtn.addEventListener("click", () => {
+  const texto = taskInput.value.trim();
+  if (texto === "") return;
+  tareas.push(texto);
+  guardarTareas();
+  mostrarTareas();
+  taskInput.value = "";
+});
+
+window.eliminarTarea = function (index) {
+  tareas.splice(index, 1);
+  guardarTareas();
+  mostrarTareas();
+};
+
+window.editarTarea = function (index) {
+  Swal.fire({
+    title: "Editar tarea",
+    input: "text",
+    inputValue: tareas[index],
+    showCancelButton: true,
+    confirmButtonText: "Guardar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      tareas[index] = result.value;
+      guardarTareas();
+      mostrarTareas();
+    }
+  });
+};
+
+// Con esto reaviso la autenticidad
+loginBtn.addEventListener("click", () => {
+  const user = loginUsername.value.trim();
+  const pass = loginPassword.value;
+
+  if (!user || !pass) {
+    Swal.fire("Error", "Completa todos los campos", "error");
     return;
   }
 
-  const usuario = {
-    nombre: nombre,
-    edad: parseInt(edad),
-  };
+  const users = JSON.parse(localStorage.getItem("usuarios")) || {};
 
-  localStorage.setItem("usuario", JSON.stringify(usuario));
-  mostrarDatos();
-  incrementarContador();
+  if (users[user] && users[user].password === pass) {
+    iniciarSesion(user);
+  } else {
+    Swal.fire("Error", "Usuario o contraseña incorrecta", "error");
+  }
 });
 
-// datos para la pagina al recargara
-function mostrarDatos() {
-  const datos = localStorage.getItem("usuario");
+registerBtn.addEventListener("click", () => {
+  const user = registerUsername.value.trim();
+  const pass = registerPassword.value;
+  const confirm = registerConfirm.value;
+  const edad = registerAge.value;
 
-  if (datos) {
-    const usuario = JSON.parse(datos);
-    output.textContent = `Nombre: ${usuario.nombre}, Edad: ${usuario.edad}`;
-  } else {
-    output.textContent = "No hay información almacenada.";
+  if (!user || !pass || !confirm || !edad) {
+    Swal.fire("Error", "Todos los campos son obligatorios", "error");
+    return;
+  }
+
+  if (pass !== confirm) {
+    Swal.fire("Error", "Las contraseñas no coinciden", "error");
+    return;
+  }
+
+  const users = JSON.parse(localStorage.getItem("usuarios")) || {};
+
+  if (users[user]) {
+    Swal.fire("Error", "Este usuario ya existe", "error");
+    return;
+  }
+
+  users[user] = { password: pass, edad: parseInt(edad) };
+  localStorage.setItem("usuarios", JSON.stringify(users));
+
+  Swal.fire("Registrado", "Usuario creado exitosamente", "success").then(() => {
+    mostrarVista("login");
+  });
+});
+
+logoutBtn.addEventListener("click", () => {
+  Swal.fire({
+    title: "¿Cerrar sesión?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Sí, salir",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem("user");
+      currentUser = null;
+      tareas = [];
+      mostrarVista("login");
+    }
+  });
+});
+
+function iniciarSesion(user) {
+  currentUser = user;
+  localStorage.setItem("user", user);
+  currentUserLabel.textContent = `Usuario: ${user}`;
+  mostrarVista("app");
+  cargarTareas();
+}
+
+function mostrarVista(vista) {
+  loginView.classList.add("hidden");
+  registerView.classList.add("hidden");
+  appView.classList.add("hidden");
+  userMenu.classList.add("hidden");
+
+  if (vista === "login") {
+    loginView.classList.remove("hidden");
+  } else if (vista === "register") {
+    registerView.classList.remove("hidden");
+  } else if (vista === "app") {
+    appView.classList.remove("hidden");
+    userMenu.classList.remove("hidden");
   }
 }
 
-// contador parn Session Storage
-function incrementarContador() {
-  let contador = sessionStorage.getItem("interacciones");
-  contador = contador ? parseInt(contador) + 1 : 1;
-  sessionStorage.setItem("interacciones", contador);
-  contadorDiv.textContent = `Interacciones en esta sesión: ${contador}`;
-}
-
-// limpiar Local Storage
-limpiarBtn.addEventListener("click", () => {
-  localStorage.removeItem("usuario");
-  mostrarDatos();
-  incrementarContador();
+// para navegar entre vistas
+goToRegister.addEventListener("click", (e) => {
+  e.preventDefault();
+  mostrarVista("register");
 });
 
-// datos desde datos.json 
-function cargarDatosDesdeJSON() {
-  fetch("/database.json")
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("Datos cargados desde database.json:", data);
-      jsonOutput.textContent = `Datos JSON externo - Nombre: ${data.nombre}, Edad: ${data.edad}`;
-    })
-    .catch((error) => {
-      console.error("Error cargando database.json:", error);
-      jsonOutput.textContent = "No se pudo cargar datos desde JSON externo.";
-    });
-}
+goToLogin.addEventListener("click", (e) => {
+  e.preventDefault();
+  mostrarVista("login");
+});
 
-// Al cargar la página
+// Autologin por si hay sesion iniciada previamente
 document.addEventListener("DOMContentLoaded", () => {
-  mostrarDatos();
-  incrementarContador();
-  cargarDatosDesdeJSON(); // Llamamos la función extra
+  const savedUser = localStorage.getItem("user");
+  if (savedUser) iniciarSesion(savedUser);
+  else mostrarVista("login");
 });
